@@ -2,40 +2,448 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <title>歷年音樂節獨唱歌曲庫</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音樂節參賽歌曲庫 (2022-2026)</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f8fafc; }
-        .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .btn { padding: 6px 12px; border-radius: 15px; border: 1px solid #ccc; cursor: pointer; }
-        .active { background: #4f46e5; color: white; }
-        .yt-link { background: red; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; font-weight: bold; }
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        /* 篩選控制器區塊 */
+        .filter-section {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .filter-group select:focus, .filter-group input:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* 統計資訊 */
+        .stats {
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* 歌曲表格樣式 */
+        .table-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* 標籤樣式 */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-cantonese { background-color: #dbeafe; color: #1e40af; }
+        .badge-mandarin { background-color: #fef3c7; color: #92400e; }
+        .badge-english { background-color: #d1fae5; color: #065f46; }
+        .badge-other { background-color: #f3e8ff; color: #6b21a8; }
+
+        .badge-year { background-color: #e2e8f0; color: #334155; }
+
+        /* YouTube 按鈕 */
+        .yt-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #ff0000;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .yt-btn:hover {
+            background-color: #cc0000;
+            transform: translateY(-1px);
+        }
+
+        .yt-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* 無結果提示 */
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
     </style>
 </head>
 <body>
-    <h2>🎵 歷年音樂節獨唱歌曲庫</h2>
-    <div>
-        <button class="btn active" onclick="filter('all')">全部</button>
-        <button class="btn" onclick="filter('female')">👩 女歌手</button>
-        <button class="btn" onclick="filter('male')">👨 男歌手/樂隊</button>
+
+<div class="container">
+    <header>
+        <h1>🎵 音樂節參賽歌曲檢索系統</h1>
+        <p class="subtitle">涵蓋 2022-2026 年度獨唱及小組合唱名單，提供多維度分類與 YouTube 直達連結</p>
+    </header>
+
+    <!-- 篩選控制器區塊 -->
+    <div class="filter-section">
+        <div class="filter-group">
+            <label for="search">搜尋歌曲 / 原唱</label>
+            <input type="text" id="search" placeholder="輸入關鍵字...">
+        </div>
+
+        <div class="filter-group">
+            <label for="filterYear">比賽年度</label>
+            <select id="filterYear">
+                <option value="ALL">全部年度</option>
+                <option value="2022-2023">2022-2023 (燦若繁聲)</option>
+                <option value="2023-2024">2023-2024 (聲悅交輝)</option>
+                <option value="2025-2026">2025-2026 (聲遇知音)</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="filterType">演唱形式</label>
+            <select id="filterType">
+                <option value="ALL">全部分類</option>
+                <option value="獨唱">獨唱</option>
+                <option value="小組合唱">小組合唱</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="filterLang">歌曲語言</label>
+            <select id="filterLang">
+                <option value="ALL">全部語言</option>
+                <option value="廣東話">廣東話</option>
+                <option value="普通話">普通話</option>
+                <option value="英文">英文</option>
+                <option value="其他語言">其他語言 (日/韓)</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="filterGender">原唱歌手分類</label>
+            <select id="filterGender">
+                <option value="ALL">全部分類</option>
+                <option value="男歌手">男歌手 / 男子組合</option>
+                <option value="女歌手">女歌手 / 女子組合</option>
+                <option value="男女合唱">男女合唱 / 多人混合</option>
+            </select>
+        </div>
     </div>
-    <div id="list" style="margin-top:20px;"></div>
 
-    <script>
-        const songs = [
-            { title: "雨愛", artist: "楊丞琳", gender: "female", year: "2023" },
-            { title: "笑忘書", artist: "張敬軒", gender: "male", year: "2025" },
-            { title: "填詞魂", artist: "謝雅兒", gender: "female", year: "2024" }
-        ];
+    <div class="stats" id="statsCount">顯示 0 首歌曲</div>
 
-        function render(data) {
-            document.getElementById('list').innerHTML = data.map(s => `
-                <div class="card">
-                    <div><b>《${s.title}》</b> - ${s.artist} (${s.year})</div>
-                    <a class="yt-link" href="https://www.youtube.com/results?search_query=${encodeURIComponent(s.title + ' ' + s.artist)}" target="_blank">YouTube</a>
-                </div>
-            `).join('');
+    <!-- 表格區塊 -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>歌名</th>
+                    <th>原唱歌手 / 作曲</th>
+                    <th>年度</th>
+                    <th>形式</th>
+                    <th>語言</th>
+                    <th>原唱分類</th>
+                    <th>YouTube 試聽</th>
+                </tr>
+            </thead>
+            <tbody id="songTableBody">
+                <!-- 資料將由 JS 動態生成 -->
+            </tbody>
+        </table>
+        <div id="noResults" class="no-results" style="display: none;">沒有找到符合條件的歌曲</div>
+    </div>
+</div>
+
+<script>
+    // 歌曲資料庫
+    const songData = [
+        // 2022-2023
+        { title: "你是你本身的傳奇", artist: "方皓玟", year: "2022-2023", type: "獨唱", lang: "廣東話", gender: "女歌手" },
+        { title: "Memories", artist: "Maroon 5", year: "2022-2023", type: "小組合唱", lang: "英文", gender: "男歌手" },
+        { title: "青春頌", artist: "許廷鏗", year: "2022-2023", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "How Far I'll Go", artist: "Alessia Cara", year: "2022-2023", type: "小組合唱", lang: "英文", gender: "女歌手" },
+        { title: "下碌下碌", artist: "雷同二友", year: "2022-2023", type: "小組合唱", lang: "廣東話", gender: "女歌手" },
+        { title: "10000 Reasons", artist: "Matt Redman", year: "2022-2023", type: "小組合唱", lang: "英文", gender: "男歌手" },
+        { title: "I See the Light", artist: "Zachary Levi、Mandy Moore", year: "2022-2023", type: "小組合唱", lang: "英文", gender: "男女合唱" },
+        { title: "羅生門", artist: "麥浚龍、謝安琪", year: "2022-2023", type: "小組合唱", lang: "廣東話", gender: "男女合唱" },
+        { title: "Frenemy", artist: "洪嘉豪、張天賦", year: "2022-2023", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "說好不哭", artist: "周杰倫、陳信宏", year: "2022-2023", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "鯨落", artist: "陳卓賢", year: "2022-2023", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "ほらね (Horane)", artist: "松下耕", year: "2022-2023", type: "小組合唱", lang: "其他語言", gender: "男女合唱" },
+        { title: "追", artist: "張國榮", year: "2022-2023", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "City of Stars", artist: "Emma Stone、Ryan Gosling", year: "2022-2023", type: "小組合唱", lang: "英文", gender: "男女合唱" },
+        { title: "不該", artist: "周杰倫、張惠妹", year: "2022-2023", type: "小組合唱", lang: "普通話", gender: "男女合唱" },
+        { title: "Someone You Loved", artist: "Lewis Capaldi", year: "2022-2023", type: "小組合唱", lang: "英文", gender: "男歌手" },
+        { title: "最後的信仰", artist: "林二汶", year: "2022-2023", type: "小組合唱", lang: "廣東話", gender: "女歌手" },
+        { title: "陀飛輪", artist: "陳奕迅", year: "2022-2023", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "蝸牛", artist: "江𤒹生、陳卓賢", year: "2022-2023", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+
+        // 2023-2024
+        { title: "篇章", artist: "張韶涵、王赫野", year: "2023-2024", type: "小組合唱", lang: "普通話", gender: "男女合唱" },
+        { title: "化身孤島的鯨", artist: "周深", year: "2023-2024", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "數字人生", artist: "林子祥", year: "2023-2024", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "熒光", artist: "陳蕾", year: "2023-2024", type: "小組合唱", lang: "廣東話", gender: "女歌手" },
+        { title: "相信一切是最好的安排", artist: "陳蕾", year: "2023-2024", type: "小組合唱", lang: "廣東話", gender: "女歌手" },
+        { title: "時間的初衷", artist: "周國賢、趙善恆", year: "2023-2024", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "說好不哭", artist: "周杰倫、陳信宏", year: "2023-2024", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "I AM", artist: "IVE", year: "2023-2024", type: "小組合唱", lang: "其他語言", gender: "女歌手" },
+        { title: "Monsters", artist: "Katie Sky", year: "2023-2024", type: "小組合唱", lang: "英文", gender: "女歌手" },
+        { title: "單車", artist: "陳奕迅", year: "2023-2024", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "How Far I'll Go", artist: "Auli'i Cravalho", year: "2023-2024", type: "小組合唱", lang: "英文", gender: "女歌手" },
+        { title: "Moon Halo", artist: "茶理理、TetraCalyx、Hanser", year: "2023-2024", type: "小組合唱", lang: "英文", gender: "女歌手" },
+        { title: "和光同塵", artist: "周深", year: "2023-2024", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "A Whole New World", artist: "Brad Kane、Lea Salonga", year: "2023-2024", type: "小組合唱", lang: "英文", gender: "男女合唱" },
+        { title: "A Million Dreams", artist: "Ziv Zaifman、Hugh Jackman、Michelle Williams", year: "2023-2024", type: "小組合唱", lang: "英文", gender: "男女合唱" },
+        { title: "Count on Me", artist: "Bruno Mars", year: "2023-2024", type: "小組合唱", lang: "英文", gender: "男歌手" },
+        { title: "默默向上游", artist: "張國榮", year: "2023-2024", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "就讓這大雨全都落下", artist: "汪蘇瀧、容祖兒", year: "2023-2024", type: "小組合唱", lang: "普通話", gender: "男女合唱" },
+        { title: "手心的薔薇", artist: "林俊傑、鄧紫棋", year: "2023-2024", type: "小組合唱", lang: "普通話", gender: "男女合唱" },
+        { title: "I Want It That Way", artist: "Backstreet Boys", year: "2023-2024", type: "小組合唱", lang: "英文", gender: "男歌手" },
+        { title: "Tiny Stars", artist: "澀谷香音、唐可可", year: "2023-2024", type: "小組合唱", lang: "其他語言", gender: "女歌手" },
+        { title: "小幸運", artist: "田馥甄", year: "2023-2024", type: "小組合唱", lang: "普通話", gender: "女歌手" },
+        { title: "你帶著我的青春離去", artist: "王灝兒", year: "2023-2024", type: "小組合唱", lang: "廣東話", gender: "女歌手" },
+        { title: "Rewrite the Stars", artist: "Zac Efron、Zendaya", year: "2023-2024", type: "小組合唱", lang: "英文", gender: "男女合唱" },
+        { title: "天黑黑", artist: "孫燕姿", year: "2023-2024", type: "小組合唱", lang: "普通話", gender: "女歌手" },
+        { title: "蝸牛", artist: "江𤒹生、陳卓賢", year: "2023-2024", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "翅膀", artist: "林俊傑", year: "2023-2024", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "後來的我們", artist: "五月天", year: "2023-2024", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "Forever Young", artist: "艾怡良", year: "2023-2024", type: "小組合唱", lang: "普通話", gender: "女歌手" },
+
+        // 2025-2026
+        { title: "如果有來生", artist: "譚維維", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "女歌手" },
+        { title: "三日月の願い (Crescent Moon's Wish)", artist: "&TEAM", year: "2025-2026", type: "獨唱", lang: "其他語言", gender: "男歌手" },
+        { title: "我們都是這樣長大的", artist: "鄭秀文", year: "2025-2026", type: "獨唱", lang: "廣東話", gender: "女歌手" },
+        { title: "半句再見", artist: "孫燕姿", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "女歌手" },
+        { title: "天黑黑", artist: "孫燕姿", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "女歌手" },
+        { title: "Tears in Heaven", artist: "Eric Clapton", year: "2025-2026", type: "獨唱", lang: "英文", gender: "男歌手" },
+        { title: "笑忘書", artist: "張敬軒", year: "2025-2026", type: "獨唱", lang: "廣東話", gender: "男歌手" },
+        { title: "阿楚姑娘", artist: "袁婭維", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "女歌手" },
+        { title: "落葉歸根", artist: "王力宏", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "男歌手" },
+        { title: "小伙子", artist: "Supper Moment", year: "2025-2026", type: "獨唱", lang: "廣東話", gender: "男歌手" },
+        { title: "記得", artist: "林家謙", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "男歌手" },
+        { title: "Never Enough", artist: "Loren Allred", year: "2025-2026", type: "獨唱", lang: "英文", gender: "女歌手" },
+        { title: "愛愛愛", artist: "方大同", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "男歌手" },
+        { title: "虹之間", artist: "金貴晟", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "男歌手" },
+        { title: "聽海", artist: "張惠妹", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "女歌手" },
+        { title: "愛永在", artist: "王傳亮", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "男歌手" },
+        { title: "最長的電影", artist: "周杰倫", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "男歌手" },
+        { title: "歌．頌", artist: "陳奕迅", year: "2025-2026", type: "獨唱", lang: "廣東話", gender: "男歌手" },
+        { title: "我們的愛", artist: "F.I.R.飛兒樂團", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "女歌手" },
+        { title: "ドライフラワー (Dried Flower)", artist: "優里", year: "2025-2026", type: "獨唱", lang: "其他語言", gender: "男歌手" },
+        { title: "浮誇", artist: "陳奕迅", year: "2025-2026", type: "獨唱", lang: "廣東話", gender: "男歌手" },
+        { title: "ひまわりの約束 (向日葵的約定)", artist: "秦基博", year: "2025-2026", type: "獨唱", lang: "其他語言", gender: "男歌手" },
+        { title: "至少做一件離譜的事", artist: "Kiri T", year: "2025-2026", type: "獨唱", lang: "廣東話", gender: "女歌手" },
+        { title: "心牆", artist: "郭靜", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "女歌手" },
+        { title: "神奇的糊塗魔藥", artist: "林家謙", year: "2025-2026", type: "獨唱", lang: "廣東話", gender: "男歌手" },
+        { title: "有愛就不怕", artist: "莊心妍", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "女歌手" },
+        { title: "房間", artist: "劉瑞琦", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "女歌手" },
+        { title: "有一種悲傷", artist: "A-Lin", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "女歌手" },
+        { title: "引我笑", artist: "雲浩影", year: "2025-2026", type: "獨唱", lang: "廣東話", gender: "女歌手" },
+        { title: "銀河修理員", artist: "Dear Jane", year: "2025-2026", type: "獨唱", lang: "廣東話", gender: "男歌手" },
+        { title: "用背脊唱情歌", artist: "湯令山", year: "2025-2026", type: "獨唱", lang: "廣東話", gender: "男歌手" },
+        { title: "Tomorrow", artist: "AGA", year: "2025-2026", type: "獨唱", lang: "英文", gender: "女歌手" },
+        { title: "雨愛", artist: "楊丞琳", year: "2025-2026", type: "獨唱", lang: "普通話", gender: "女歌手" },
+        { title: "遇見", artist: "孫燕姿", year: "2025-2026", type: "小組合唱", lang: "普通話", gender: "女歌手" },
+        { title: "今生緣", artist: "川子", year: "2025-2026", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "We are the World", artist: "USA for Africa", year: "2025-2026", type: "小組合唱", lang: "英文", gender: "男女合唱" },
+        { title: "Count on Me", artist: "Bruno Mars", year: "2025-2026", type: "小組合唱", lang: "英文", gender: "男歌手" },
+        { title: "找自己", artist: "陶喆", year: "2025-2026", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "句號", artist: "鄧紫棋", year: "2025-2026", type: "小組合唱", lang: "普通話", gender: "女歌手" },
+        { title: "閃耀", artist: "汪蘇瀧", year: "2025-2026", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "我們的愛", artist: "F.I.R.飛兒樂團", year: "2025-2026", type: "小組合唱", lang: "普通話", gender: "女歌手" },
+        { title: "青春常駐", artist: "張敬軒", year: "2025-2026", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "Dear Friend", artist: "祁紫檀", year: "2025-2026", type: "小組合唱", lang: "普通話", gender: "女歌手" },
+        { title: "不該", artist: "周杰倫、張惠妹", year: "2025-2026", type: "小組合唱", lang: "普通話", gender: "男女合唱" },
+        { title: "落葉歸根", artist: "王力宏", year: "2025-2026", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "樣", artist: "王俊凱", year: "2025-2026", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "打上花火", artist: "Daoko、米津玄師", year: "2025-2026", type: "小組合唱", lang: "其他語言", gender: "男女合唱" },
+        { title: "Take This Gift", artist: "Tracy Wong", year: "2025-2026", type: "小組合唱", lang: "英文", gender: "女歌手" },
+        { title: "雪落下的聲音", artist: "陸虎", year: "2025-2026", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "羅生門", artist: "麥浚龍、謝安琪", year: "2025-2026", type: "小組合唱", lang: "廣東話", gender: "男女合唱" },
+        { title: "青春修煉手冊", artist: "TFBOYS", year: "2025-2026", type: "小組合唱", lang: "普通話", gender: "男歌手" },
+        { title: "信任彩虹", artist: "譚天樂", year: "2025-2026", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "櫻花樹下", artist: "張敬軒", year: "2025-2026", type: "小組合唱", lang: "廣東話", gender: "男歌手" },
+        { title: "Rewrite the Stars", artist: "Anne-Marie & James Arthur", year: "2025-2026", type: "小組合唱", lang: "英文", gender: "男女合唱" }
+    ];
+
+    // 取得 DOM 元素
+    const searchInput = document.getElementById('search');
+    const filterYear = document.getElementById('filterYear');
+    const filterType = document.getElementById('filterType');
+    const filterLang = document.getElementById('filterLang');
+    const filterGender = document.getElementById('filterGender');
+    const songTableBody = document.getElementById('songTableBody');
+    const noResults = document.getElementById('noResults');
+    const statsCount = document.getElementById('statsCount');
+
+    // 語言 Badge 類別對應
+    function getLangBadgeClass(lang) {
+        switch(lang) {
+            case '廣東話': return 'badge-cantonese';
+            case '普通話': return 'badge-mandarin';
+            case '英文': return 'badge-english';
+            default: return 'badge-other';
         }
-        render(songs);
-    </script>
+    }
+
+    // 渲染歌曲列表
+    function renderSongs() {
+        const query = searchInput.value.trim().toLowerCase();
+        const selectedYear = filterYear.value;
+        const selectedType = filterType.value;
+        const selectedLang = filterLang.value;
+        const selectedGender = filterGender.value;
+
+        const filtered = songData.filter(song => {
+            const matchesQuery = song.title.toLowerCase().includes(query) || song.artist.toLowerCase().includes(query);
+            const matchesYear = selectedYear === 'ALL' || song.year === selectedYear;
+            const matchesType = selectedType === 'ALL' || song.type === selectedType;
+            const matchesLang = selectedLang === 'ALL' || song.lang === selectedLang;
+            const matchesGender = selectedGender === 'ALL' || song.gender === selectedGender;
+
+            return matchesQuery && matchesYear && matchesType && matchesLang && matchesGender;
+        });
+
+        // 更新統計數據
+        statsCount.textContent = `顯示 ${filtered.length} 首歌曲（共 ${songData.length} 首）`;
+
+        // 清空現有表格內容
+        songTableBody.innerHTML = '';
+
+        if (filtered.length === 0) {
+            noResults.style.display = 'block';
+        } else {
+            noResults.style.display = 'none';
+            filtered.forEach(song => {
+                const tr = document.createElement('tr');
+                
+                // 動態生成 YouTube 搜尋網址
+                const ytSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(song.title + ' ' + song.artist)}`;
+
+                tr.innerHTML = `
+                    <td><strong>${song.title}</strong></td>
+                    <td>${song.artist}</td>
+                    <td><span class="badge badge-year">${song.year}</span></td>
+                    <td>${song.type}</td>
+                    <td><span class="badge ${getLangBadgeClass(song.lang)}">${song.lang}</span></td>
+                    <td>${song.gender}</td>
+                    <td>
+                        <a href="${ytSearchUrl}" target="_blank" class="yt-btn" title="在 YouTube 搜尋播放">
+                            <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                            YouTube
+                        </a>
+                    </td>
+                `;
+                songTableBody.appendChild(tr);
+            });
+        }
+    }
+
+    // 監聽輸入事件
+    searchInput.addEventListener('input', renderSongs);
+    filterYear.addEventListener('change', renderSongs);
+    filterType.addEventListener('change', renderSongs);
+    filterLang.addEventListener('change', renderSongs);
+    filterGender.addEventListener('change', renderSongs);
+
+    // 初始化渲染
+    renderSongs();
+</script>
+
 </body>
 </html>
+
